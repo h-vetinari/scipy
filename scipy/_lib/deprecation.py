@@ -1,3 +1,4 @@
+from inspect import Parameter, signature
 import functools
 import warnings
 
@@ -113,7 +114,7 @@ def deprecate_cython_api(module, routine_name, new_name=None, message=None):
 
 # taken from scikit-learn, see
 # https://github.com/scikit-learn/scikit-learn/blob/1.3.0/sklearn/utils/validation.py#L38
-def _deprecate_positional_args(func=None, *, version="1.3"):
+def _deprecate_positional_args(func=None, *, version="1.14"):
     """Decorator for methods that issues warnings for positional arguments.
 
     Using the keyword-only argument syntax in pep 3102, arguments after the
@@ -123,7 +124,7 @@ def _deprecate_positional_args(func=None, *, version="1.3"):
     ----------
     func : callable, default=None
         Function to check arguments on.
-    version : callable, default="1.3"
+    version : callable, default="1.14"
         The version when positional arguments will result in error.
     """
 
@@ -138,7 +139,7 @@ def _deprecate_positional_args(func=None, *, version="1.3"):
             elif param.kind == Parameter.KEYWORD_ONLY:
                 kwonly_args.append(name)
 
-        @wraps(f)
+        @functools.wraps(f)
         def inner_f(*args, **kwargs):
             extra_args = len(args) - len(all_args)
             if extra_args <= 0:
@@ -152,11 +153,12 @@ def _deprecate_positional_args(func=None, *, version="1.3"):
             args_msg = ", ".join(args_msg)
             warnings.warn(
                 (
-                    f"Pass {args_msg} as keyword args. From version "
-                    f"{version} passing these as positional arguments "
-                    "will result in an error"
+                    f"You are passing {args_msg} as a positional argument. "
+                    "Please change your invocation to use keyword arguments. "
+                    f"From SciPy {version}, passing these as positional "
+                    "arguments will result in an error."
                 ),
-                FutureWarning,
+                DeprecationWarning,
             )
             kwargs.update(zip(sig.parameters, args))
             return f(**kwargs)
