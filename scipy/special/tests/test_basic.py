@@ -2112,19 +2112,19 @@ def assert_really_equal(x, y, rtol=None):
     Sharper assertion function that is stricter about matching types, not just values
 
     This is useful/necessary in some cases:
-      * 0-dim arrays vs. scalars (see numpy/numpy#24050)
+      * handled by xp_assert_* functions
       * dtypes for arrays that have the same _values_ (e.g. element 1.0 vs 1)
       * distinguishing complex from real NaN
 
     We still want to be able to allow a relative tolerance for the values though.
     """
     def assert_func(x, y):
-        assert_equal(x, y) if rtol is None else assert_allclose(x, y, rtol=rtol)
+        xp_assert_equal(x, y) if rtol is None else xp_assert_close(x, y, rtol=rtol)
 
     def assert_complex_nan(x):
         assert np.isnan(x.real) and np.isnan(x.imag)
 
-    assert type(x) == type(y), f"types not equal: {type(x)}, {type(y)}"
+    assert type(x) is type(y), f"types not equal: {type(x)}, {type(y)}"
 
     # ensure we also compare the values _within_ an array appropriately,
     # e.g. assert_equal does not distinguish different complex nans in arrays
@@ -2452,7 +2452,7 @@ class TestFactorialFunctions:
             if n.size:
                 dtype = np.int64 if exact else np.float64
             expected = np.array(ref, ndmin=dim, dtype=dtype)
-            xp_assert_close(result, expected, rtol=1e-15)
+            assert_really_equal(result, expected, rtol=1e-15)
 
     @pytest.mark.parametrize("exact", [True, False])
     @pytest.mark.parametrize("n", [1, 1.1, 2 + 2j, np.nan, np.nan + np.nan*1j, None],
@@ -2538,7 +2538,7 @@ class TestFactorialFunctions:
             if n.size:
                 dtype = np.int64 if exact else np.float64
             expected = np.array(ref, ndmin=dim, dtype=dtype)
-            xp_assert_close(result, expected, rtol=1e-15)
+            assert_really_equal(result, expected, rtol=1e-15)
 
     @pytest.mark.parametrize("exact", [True, False])
     @pytest.mark.parametrize("k", range(1, 5))
